@@ -1,11 +1,12 @@
 import cv2
 import numpy as np
 import math
+import argparse
 
 
 class Perspective():
 	optimalStep = 4
-	def __init__(self,extremosDeOrigen):
+	def __init__(self, extremosDeOrigen):
 		# Take the poligon cuted ROI IMAGE
 		self.extremosDeOrigen= extremosDeOrigen # Expected something like srcPol = [[pt1],[pt2],[pt3],[pt4]]
 		self.src_point1 = self.extremosDeOrigen[0]
@@ -52,11 +53,14 @@ class Perspective():
 		return longitud
 
 	def transformar(self,image,height = 0):
+
+		image_np  = cv2.imread(image)
+
 		if height == 0:	
-			transformado = cv2.warpPerspective(image, self.M, self.imageSize)
+			transformado = cv2.warpPerspective(image_np, self.M, self.imageSize)
 		else:
 			#if tamanoSalida == (0,0):
-			transformado = cv2.warpPerspective(image, self.M, (height*self.imageSize[0]//self.imageSize[1],height))
+			transformado = cv2.warpPerspective(image_np, self.M, (height*self.imageSize[0]//self.imageSize[1],height))
 			#else:
 			#	transformado = cv2.warpPerspective(image, self.M, tamanoSalida)
 		return transformado
@@ -68,3 +72,43 @@ class Perspective():
 
 	def apoyarSobreUnLado(self,image):
 		pass
+
+
+if __name__ == "__main__":
+
+	parser = argparse.ArgumentParser(description='Handle image path')
+	parser.add_argument('--path',  type=str,  help='Path of the image to process')
+	args = parser.parse_args()
+
+	image_path = args.path
+	print("Image path: ", image_path)
+
+	# Instantiate 
+	my_perspective = Perspective(extremosDeOrigen = [[0,0], [200,0], [0,200],[200,200]]) # RANDOM POINTS  p1, p2, p3, p4
+
+	# Transform the image
+	transformado = my_perspective.transformar(image_path, height = 0)
+
+	# Enmarcar 
+	enmarcado = my_perspective.enmarcar(transformado)
+	
+	# Load original image
+	original_image = cv2.imread(image_path)
+
+	# Mostrar
+
+	# Resite original image to fill in the screen
+	original_image_resized = cv2.resize(original_image, (320, 240))
+	cv2.imshow('Original', original_image_resized)
+
+	# Mostrar enmarcado image
+	cv2.imshow('Enmarcado', enmarcado)
+
+	# Press "q" to exit
+	cv2.waitKey(0)
+
+	cv2.destroyAllWindows()
+
+
+
+
